@@ -4,11 +4,9 @@ A web app to manage campus placement activity in one place: students, companies,
 
 **Live demo:** https://campus-placement-management-system-rho.vercel.app
 
-<!-- Add 1-2 screenshots here: ![Dashboard](docs/dashboard.png) -->
 
 ## Features
 
-<!-- Edit this list to match what your app actually does. Keep only what is real. -->
 - Student profiles and placement status tracking
 - Company and job posting management
 - Application tracking (applied, shortlisted, selected, rejected)
@@ -27,14 +25,51 @@ A web app to manage campus placement activity in one place: students, companies,
 
 ## Database Design
 
+```mermaid
+erDiagram
+    STUDENTS {
+        uuid id PK
+        text name
+        text email
+        text branch
+        numeric cgpa
+        int graduation_year
+    }
+    COMPANIES {
+        uuid id PK
+        text name
+        text industry
+        text location
+    }
+    JOBS {
+        uuid id PK
+        uuid company_id FK
+        text title
+        numeric package_lpa
+        numeric min_cgpa
+        date deadline
+    }
+    APPLICATIONS {
+        uuid id PK
+        uuid student_id FK
+        uuid job_id FK
+        text status
+        date applied_on
+    }
+    PLACEMENTS {
+        uuid id PK
+        uuid application_id FK
+        date offer_date
+        numeric final_package_lpa
+    }
+
+    STUDENTS ||--o{ APPLICATIONS : submits
+    JOBS ||--o{ APPLICATIONS : receives
+    COMPANIES ||--o{ JOBS : posts
+    APPLICATIONS ||--o| PLACEMENTS : results_in
+```
 
 
-| Table | Purpose | Key columns |
-|-------|---------|-------------|
-| `students` | Student details | `id` (PK), name, branch, cgpa |
-| `companies` | Recruiting companies | `id` (PK), name, package |
-| `jobs` | Openings per company | `id` (PK), `company_id` (FK) |
-| `applications` | Student-to-job applications | `id` (PK), `student_id` (FK), `job_id` (FK), status |
 
 Schema and migrations live in the [`supabase/`](./supabase) folder.
 
