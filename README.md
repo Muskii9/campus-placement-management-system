@@ -7,12 +7,13 @@ A web app to manage campus placement activity in one place: students, companies,
 
 ## Features
 
-- Student profiles and placement status tracking
-- Company and job posting management
-- Application tracking (applied, shortlisted, selected, rejected)
-- Placement statistics and reports
-- Role-based access (e.g. student / admin)
-
+- Role-based access for admin, company and student users
+- Placement drives with multiple job posts per drive
+- Student applications with status tracking (pending, shortlisted, selected, rejected)
+- Interview scheduling (round, venue, date)
+- Selected-students records with package details
+- Eligibility criteria (minimum CGPA, departments)
+- Seed function to load demo data (50 students, 10 companies, 20 drives)
 ## Tech Stack
 
 | Layer | Technology |
@@ -27,51 +28,97 @@ A web app to manage campus placement activity in one place: students, companies,
 
 ```mermaid
 erDiagram
-    STUDENTS {
+    DEPARTMENTS {
+        uuid id PK
+        text name
+        text code
+    }
+    USER_PROFILES {
+        uuid user_id PK
+        text role
+        text email
+        text full_name
+    }
+    ADMINS {
         uuid id PK
         text name
         text email
-        text branch
-        numeric cgpa
-        int graduation_year
+        text phone
     }
     COMPANIES {
         uuid id PK
         text name
-        text industry
-        text location
+        text email
+        text contact_person
+        text website
     }
-    JOBS {
+    STUDENTS {
+        uuid id PK
+        uuid department_id FK
+        text roll_no
+        text name
+        numeric cgpa
+        numeric tenth_percentage
+        numeric twelfth_percentage
+        text skills
+    }
+    RESUMES {
+        uuid student_id FK
+        text file_name
+    }
+    PLACEMENT_DRIVES {
         uuid id PK
         uuid company_id FK
         text title
-        numeric package_lpa
+        date drive_date
+        date last_date_to_apply
+        text status
+    }
+    JOB_POSTS {
+        uuid id PK
+        uuid drive_id FK
+        uuid company_id FK
+        text title
+        numeric package_ctc
         numeric min_cgpa
-        date deadline
+        int no_of_vacancies
     }
     APPLICATIONS {
         uuid id PK
         uuid student_id FK
-        uuid job_id FK
+        uuid job_post_id FK
         text status
-        date applied_on
     }
-    PLACEMENTS {
+    INTERVIEWS {
         uuid id PK
         uuid application_id FK
-        date offer_date
-        numeric final_package_lpa
+        timestamptz scheduled_at
+        text round
+        text status
+    }
+    SELECTED_STUDENTS {
+        uuid student_id FK
+        uuid company_id FK
+        uuid job_post_id FK
+        numeric package_ctc
     }
 
+    DEPARTMENTS ||--o{ STUDENTS : has
+    STUDENTS ||--o| RESUMES : uploads
+    COMPANIES ||--o{ PLACEMENT_DRIVES : organizes
+    PLACEMENT_DRIVES ||--o{ JOB_POSTS : contains
+    COMPANIES ||--o{ JOB_POSTS : posts
     STUDENTS ||--o{ APPLICATIONS : submits
-    JOBS ||--o{ APPLICATIONS : receives
-    COMPANIES ||--o{ JOBS : posts
-    APPLICATIONS ||--o| PLACEMENTS : results_in
+    JOB_POSTS ||--o{ APPLICATIONS : receives
+    APPLICATIONS ||--o{ INTERVIEWS : leads_to
+    JOB_POSTS ||--o{ SELECTED_STUDENTS : results_in
+    STUDENTS ||--o{ SELECTED_STUDENTS : selected_as
 ```
 
-
+`user_profiles` maps each login to a role (`admin`, `company` or `student`). `admins`, `companies` and `students` extend it.
 
 Schema and migrations live in the [`supabase/`](./supabase) folder.
+
 
 ## Getting Started
 
